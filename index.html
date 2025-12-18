@@ -140,7 +140,7 @@
             padding: 12px 20px;
             background-color: var(--color-light);
             border: 1px solid var(--color-border);
-            border-radius: 50px; /* Bordas arredondadas modernas */
+            border-radius: 50px;
             cursor: pointer;
             font-weight: 700;
             font-size: 14px;
@@ -164,8 +164,7 @@
             border-color: var(--color-dark);
             box-shadow: 0 4px 12px rgba(0, 26, 51, 0.3);
         }
-        /* ------------------------------------------- */
-
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
@@ -503,10 +502,10 @@
     <div class="container">
         <div class="header">
             <div class="logo-container">
-                <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/bbac6cb8-036e-4ce1-852d-e6c3397ecc20" alt="Logo Volpini">
+                <img src="logo.png" alt="Logo Volpini">
             </div>
             <div class="header-content">
-                <h1>CHECKLIST DE OFICINA</h1>
+                <h1>CHECKLIST VOLPINI</h1>
                 <p>Inspeção e Serviços Automotivos - Volpini v3.0</p>
                 <div class="contato-info">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="whatsapp-icon">
@@ -540,7 +539,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="placa">Placa *</label>
-                            <input type="text" id="placa" name="placa" placeholder="ABC-1234" maxlength="8" style="text-transform: uppercase;" required>
+                            <input type="text" id="placa" name="placa" placeholder="ABC-1234" maxlength="8" style="text-transform: uppercase;" >
                         </div>
                         <div class="form-group">
                             <label for="chassi">Chassi</label>
@@ -627,6 +626,7 @@
                             <div class="checkbox-item"><input type="checkbox" id="vidro_eletrico" name="equipamentos" value="VIDRO ELÉTRICO"><label for="vidro_eletrico">VIDRO ELÉTRICO</label></div>
                             <div class="checkbox-item"><input type="checkbox" id="trava_eletrica" name="equipamentos" value="TRAVA ELÉTRICA"><label for="trava_eletrica">TRAVA ELÉTRICA</label></div>
                             <div class="checkbox-item"><input type="checkbox" id="buzina" name="equipamentos" value="BUZINA"><label for="buzina">BUZINA</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="bateria" name="equipamentos" value="BATERIA"><label for="bateria">BATERIA</label></div>
                         </div>
                     </div>
 
@@ -683,7 +683,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nome_cliente">Nome *</label>
-                            <input type="text" id="nome_cliente" name="nome_cliente" placeholder="Nome completo do cliente" required>
+                            <input type="text" id="nome_cliente" name="nome_cliente" placeholder="Nome completo do cliente" >
                         </div>
                         <div class="form-group">
                             <label for="cpf_cnpj">CPF / CNPJ</label>
@@ -701,7 +701,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="celular_cliente">Celular / WhatsApp *</label>
-                            <input type="tel" id="celular_cliente" name="celular_cliente" placeholder="(31) 99999-9999" required>
+                            <input type="tel" id="celular_cliente" name="celular_cliente" placeholder="(31) 99999-9999" >
                         </div>
                         <div class="form-group">
                             <label for="telefone2">Telefone 2 (opcional)</label>
@@ -780,32 +780,24 @@
     </div>
 
     <script>
-        // --- LÓGICA DE ABAS (Para o novo layout funcionar) ---
+        // --- LÓGICA DE ABAS ---
         function switchTab(tabId) {
-            // Remove 'active' de todas as abas e botões
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            
-            // Ativa o conteúdo selecionado
             document.getElementById(tabId).classList.add('active');
             
-            // Ativa o botão correspondente
-            // Procura o botão que chama esta função com o mesmo ID
+            // Highlight button
             const buttons = document.querySelectorAll('.tab-button');
             for(let btn of buttons) {
                 if(btn.getAttribute('onclick').includes(tabId)) {
                     btn.classList.add('active');
-                    break;
                 }
             }
         }
 
         // --- FUNÇÃO PARA GERAR PDF (OFICINA VOLPINI) ---
         function gerarPDF() {
-            // Seleciona o conteúdo principal
             const elemento = document.querySelector('.container');
-            
-            // Opções de configuração do PDF
             const opt = {
                 margin:       [5, 5, 5, 5],
                 filename:     'Checklist-Volpini-' + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + '.pdf',
@@ -814,41 +806,32 @@
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Esconde botões e abas para não saírem no PDF
             const botoes = document.querySelectorAll('button, .tabs, .header-badge');
             botoes.forEach(btn => btn.style.display = 'none');
 
-            // Gera o PDF e depois restaura os botões
             html2pdf().set(opt).from(elemento).save().then(() => {
-                botoes.forEach(btn => btn.style.display = ''); // Restaura visibilidade
-                document.querySelector('.tabs').style.display = 'flex'; // Garante display flex nas abas
+                botoes.forEach(btn => btn.style.display = '');
+                document.querySelector('.tabs').style.display = 'flex'; 
                 document.querySelector('.header-badge').style.display = 'block';
             }).catch(err => {
                 console.error("Erro ao gerar PDF:", err);
-                alert("Erro ao gerar PDF. Tente novamente.");
+                alert("Erro ao gerar PDF.");
                 botoes.forEach(btn => btn.style.display = '');
                 document.querySelector('.tabs').style.display = 'flex';
                 document.querySelector('.header-badge').style.display = 'block';
             });
         }
+        
+        // --- PRESERVAR FUNÇÕES ANTIGAS SE EXISTIREM OU DEFINIR STUBS ---
+        // (No arquivo original elas não existiam, então defino stubs para não quebrar botões)
+        function salvarChecklist() { alert("Salvar Checklist: Funcionalidade não conectada ao backend neste arquivo."); }
+        function limparFormulario() { if(confirm("Limpar tudo?")) document.getElementById('checklistForm').reset(); }
+        function filtrarChecklists() {}
+        function ordenarChecklists() {}
+        function exportarDados() {}
+        function limparTodosDados() {}
 
-        // --- FUNÇÕES AUXILIARES (Para evitar erros nos botões existentes) ---
-        // Adicione aqui a lógica de salvarChecklist() se você a tiver, 
-        // caso contrário, este alerta previne erros de console.
-        function salvarChecklist() {
-            alert("Funcionalidade de Salvar ainda não implementada neste arquivo.");
-        }
-        function limparFormulario() {
-            if(confirm("Deseja limpar todos os campos?")) {
-                document.getElementById('checklistForm').reset();
-            }
-        }
-        function filtrarChecklists() { console.log("Filtrar (implementar lógica)"); }
-        function ordenarChecklists() { console.log("Ordenar (implementar lógica)"); }
-        function exportarDados() { alert("Sem dados para exportar."); }
-        function limparTodosDados() { alert("Sem dados para limpar."); }
-
-        // Service Worker Registration (Código original mantido ao final)
+        // Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('data:application/javascript;base64,CmNvbnN0IENBQ0hFX05BTUUgPSAnY2hlY2tsaXN0LXYzLWNhY2hlJzsKY29uc3QgVVJMU19UT19DQUNIRSA9IFsKICAnLycsCiAgJy9pbmRleC5odG1sJwpdOwoKc2VsZi5hZ');
         }
