@@ -780,56 +780,232 @@
     </div>
 
     <script>
-        // --- LÓGICA DE ABAS ---
+        // --- GERENCIAMENTO DE ABAS ---
         function switchTab(tabId) {
+            // Esconde todos os conteúdos e remove a classe active dos botões
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            
+            // Ativa o conteúdo desejado
             document.getElementById(tabId).classList.add('active');
             
-            // Highlight button
+            // Ativa o botão correspondente
             const buttons = document.querySelectorAll('.tab-button');
-            for(let btn of buttons) {
+            buttons.forEach(btn => {
                 if(btn.getAttribute('onclick').includes(tabId)) {
                     btn.classList.add('active');
                 }
+            });
+
+            // Se for a aba histórico, recarrega a lista
+            if(tabId === 'historico') {
+                carregarHistorico();
             }
         }
 
-        // --- FUNÇÃO PARA GERAR PDF (OFICINA VOLPINI) ---
+        // --- SALVAR CHECKLIST (LOCAL STORAGE) ---
+        function salvarChecklist() {
+            const placa = document.getElementById('placa').value;
+            if(!placa) {
+                alert("Por favor, preencha pelo menos a PLACA para salvar.");
+                return;
+            }
+
+            const formData = {};
+            const elements = document.getElementById('checklistForm').elements;
+            
+            // Coleta dados dos inputs
+            for(let i = 0; i < elements.length; i++) {
+                const item = elements[i];
+                if(item.name) {
+                    if(item.type === 'checkbox') {
+                        if(item.checked) {
+                            if(!formData[item.name]) formData[item.name] = [];
+                            formData[item.name].push(item.value);
+                        }
+                    } else if(item.type !== 'button') {
+                        formData[item.name] = item.value;
+                    }
+                }
+            }
+
+            // Adiciona Metadados
+            const checklist = {
+                id: Date.now(),
+                data_criacao: new Date().toISOString(),
+                ...formData
+            };
+
+            // Salva no LocalStorage
+            let checklists = JSON.parse(localStorage.getItem('checklists_volpini') || '[]');
+            checklists.push(checklist);
+            localStorage.setItem('checklists_volpini', JSON.stringify(checklists));
+
+            // Feedback
+            alert("✅ Checklist salvo com sucesso no Histórico!");
+            document.getElementById('checklistForm').reset();
+            switchTab('historico'); // Vai para o histórico mostrar
+        }
+
+        // --- CARREGAR HISTÓRICO ---
+        function carregarHistorico() {
+            const listaDiv = document.getElementById('checklistsList');
+            const emptyMsg = document.getElementById('emptyMessage');
+            const checklists = JSON.parse(localStorage.getItem('checklists_volpini') || '[]');
+
+            listaDiv.innerHTML = '';
+
+            if(checklists.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            } else {
+                emptyMsg.style.display = 'none';
+            }
+
+            // Ordena do mais recente para o mais antigo
+            checklists.reverse().forEach(item => {
+                const dataFormatada = new Date(item.data_criacao).toLocaleDateString('pt-BR');
+                const horaFormatada = new Date(item.data_criacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                const card = document.createElement('div');
+                card.className = 'checklist-item';
+                card.innerHTML = `
+                    <div class="checklist-info">
+                        <h4>${item.placa.toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
+                        <p>📅 ${dataFormatada} às ${horaFormatada} | 👤 ${item.nome_cliente || 'Cliente não inf.'}</p>
+                    </div>
+                    <div class="checklist-actions">
+                        <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
+                        <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
+                    </div>
+                `;
+                listaDiv.appendChild(card);
+            });
+        }
+
+        // --- CARREGAR CHECKLIST PARA EDIÇÃO ---
+        function carregarChecklist(id) {
+            const checklists = JSON.parse(localStorage.getItem('checklists_volpini') || '[]');
+            const item = checklists.find(c => c.id === id);
+            
+            if(item) {
+                switchTab('novo-checklist');
+                
+                // Preenche campos simples
+                for (const key in item) {
+                    const el = document.getElementsByName(key)[0];
+                    if (el && el.type !== 'checkbox' && el.type !== 'file') {
+                        el.value = item[key];
+                    }
+                }
+                
+                // Preenche checkboxes (limpa antes)
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                
+                // Marca checkboxes salvos
+                if(item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
+                if(item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
+                if(item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
+                if(item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
+            }
+        }
+
+        function marcarCheckbox(name, value) {
+            const els = document.getElementsByName(name);
+            els.forEach(el => {
+                if(el.value === value) el.checked = true;
+            });
+        }
+
+        // --- EXCLUIR CHECKLIST ---
+        function excluirChecklist(id) {
+            if(confirm("Tem certeza que deseja excluir este checklist?")) {
+                let checklists = JSON.parse(localStorage.getItem('checklists_volpini') || '[]');
+                checklists = checklists.filter(c => c.id !== id);
+                localStorage.setItem('checklists_volpini', JSON.stringify(checklists));
+                carregarHistorico();
+            }
+        }
+
+        // --- GERAR PDF CORRIGIDO ---
         function gerarPDF() {
             const elemento = document.querySelector('.container');
+            
+            // 1. Configuração para evitar páginas em branco
+            // Salvamos o estilo original para restaurar depois
+            const originalBodyOverflow = document.body.style.overflow;
+            const originalBodyPadding = document.body.style.padding;
+            const originalContainerMargin = elemento.style.margin;
+            const originalContainerBoxShadow = elemento.style.boxShadow;
+
+            // Ajustes temporários para a "foto" sair perfeita
+            window.scrollTo(0, 0); // Garante que está no topo
+            document.body.style.overflow = 'visible'; // Evita cortes
+            document.body.style.padding = '0'; // Remove espaçamento extra do body
+            elemento.style.margin = '0 auto'; // Centraliza sem margem vertical excessiva
+            elemento.style.boxShadow = 'none'; // Remove sombra para não sair no PDF
+            
+            // Oculta elementos de navegação
+            const botoes = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons');
+            botoes.forEach(btn => btn.style.display = 'none');
+
             const opt = {
-                margin:       [5, 5, 5, 5],
-                filename:     'Checklist-Volpini-' + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + '.pdf',
+                margin:       [0, 0, 0, 0], // Margem zero, controlamos via CSS se precisar
+                filename:     'Checklist-Volpini-' + document.getElementById('placa').value + '.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0, // FORÇA O TOPO DA PÁGINA (Corrige o branco em cima)
+                    windowWidth: document.documentElement.offsetWidth // Garante largura total
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            const botoes = document.querySelectorAll('button, .tabs, .header-badge');
-            botoes.forEach(btn => btn.style.display = 'none');
-
             html2pdf().set(opt).from(elemento).save().then(() => {
+                // Restaura tudo
                 botoes.forEach(btn => btn.style.display = '');
                 document.querySelector('.tabs').style.display = 'flex'; 
                 document.querySelector('.header-badge').style.display = 'block';
+                document.querySelector('.action-buttons').style.display = 'flex';
+                
+                document.body.style.overflow = originalBodyOverflow;
+                document.body.style.padding = originalBodyPadding;
+                elemento.style.margin = originalContainerMargin;
+                elemento.style.boxShadow = originalContainerBoxShadow;
             }).catch(err => {
-                console.error("Erro ao gerar PDF:", err);
+                console.error(err);
                 alert("Erro ao gerar PDF.");
+                // Restaura em caso de erro também
                 botoes.forEach(btn => btn.style.display = '');
                 document.querySelector('.tabs').style.display = 'flex';
                 document.querySelector('.header-badge').style.display = 'block';
+                document.querySelector('.action-buttons').style.display = 'flex';
+                document.body.style.overflow = originalBodyOverflow;
+                document.body.style.padding = originalBodyPadding;
             });
         }
+
+        function limparFormulario() {
+            if(confirm("Limpar todos os campos do formulário?")) {
+                document.getElementById('checklistForm').reset();
+            }
+        }
         
-        // --- PRESERVAR FUNÇÕES ANTIGAS SE EXISTIREM OU DEFINIR STUBS ---
-        // (No arquivo original elas não existiam, então defino stubs para não quebrar botões)
-        function salvarChecklist() { alert("Salvar Checklist: Funcionalidade não conectada ao backend neste arquivo."); }
-        function limparFormulario() { if(confirm("Limpar tudo?")) document.getElementById('checklistForm').reset(); }
-        function filtrarChecklists() {}
-        function ordenarChecklists() {}
-        function exportarDados() {}
-        function limparTodosDados() {}
+        // Funções placeholders para os botões do relatório não quebrarem
+        function exportarDados() { alert("Funcionalidade em desenvolvimento."); }
+        function limparTodosDados() { 
+            if(confirm("Deseja apagar TODO o histórico?")) {
+                localStorage.removeItem('checklists_volpini');
+                carregarHistorico();
+                alert("Histórico limpo.");
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarHistorico();
+        });
 
         // Service Worker
         if ('serviceWorker' in navigator) {
