@@ -755,21 +755,13 @@
                         <div class="stat-label">Checklists Salvos</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="totalFotos">0</div>
-                        <div class="stat-label">Fotos Registradas</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalClientes">0</div>
-                        <div class="stat-label">Clientes Diferentes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="ultimoChecklist">--</div>
-                        <div class="stat-label">Último Checklist</div>
+                        <div class="stat-number" id="checklistsMes">0</div>
+                        <div class="stat-label">Checklists Mês Atual</div>
                     </div>
                 </div>
 
-                <div class="section-title">🚗 VEÍCULOS MAIS COMUNS</div>
-                <div id="vehicleStats"></div>
+                <div class="section-title">🚗 MARCAS MAIS ATENDIDAS</div>
+                <div id="graficoMarcas" style="margin-top: 20px;"></div>
 
                 <div class="action-buttons">
                     <button class="btn-primary" onclick="exportarDados()">💾 Exportar Todos (JSON)</button>
@@ -797,9 +789,11 @@
                 }
             });
 
-            // Se for a aba histórico, recarrega a lista
+            // Lógica específica por aba
             if(tabId === 'historico') {
                 carregarHistorico();
+            } else if (tabId === 'relatorios') {
+                atualizarRelatorios();
             }
         }
 
@@ -932,38 +926,34 @@
             const elemento = document.querySelector('.container');
             
             // 1. Configuração para evitar páginas em branco
-            // Salvamos o estilo original para restaurar depois
             const originalBodyOverflow = document.body.style.overflow;
             const originalBodyPadding = document.body.style.padding;
             const originalContainerMargin = elemento.style.margin;
             const originalContainerBoxShadow = elemento.style.boxShadow;
 
-            // Ajustes temporários para a "foto" sair perfeita
-            window.scrollTo(0, 0); // Garante que está no topo
-            document.body.style.overflow = 'visible'; // Evita cortes
-            document.body.style.padding = '0'; // Remove espaçamento extra do body
-            elemento.style.margin = '0 auto'; // Centraliza sem margem vertical excessiva
-            elemento.style.boxShadow = 'none'; // Remove sombra para não sair no PDF
+            window.scrollTo(0, 0); 
+            document.body.style.overflow = 'visible'; 
+            document.body.style.padding = '0'; 
+            elemento.style.margin = '0 auto'; 
+            elemento.style.boxShadow = 'none'; 
             
-            // Oculta elementos de navegação
             const botoes = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons');
             botoes.forEach(btn => btn.style.display = 'none');
 
             const opt = {
-                margin:       [0, 0, 0, 0], // Margem zero, controlamos via CSS se precisar
+                margin:       [0, 0, 0, 0], 
                 filename:     'Checklist-Volpini-' + document.getElementById('placa').value + '.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
-                    scrollY: 0, // FORÇA O TOPO DA PÁGINA (Corrige o branco em cima)
-                    windowWidth: document.documentElement.offsetWidth // Garante largura total
+                    scrollY: 0, 
+                    windowWidth: document.documentElement.offsetWidth 
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(elemento).save().then(() => {
-                // Restaura tudo
                 botoes.forEach(btn => btn.style.display = '');
                 document.querySelector('.tabs').style.display = 'flex'; 
                 document.querySelector('.header-badge').style.display = 'block';
@@ -976,7 +966,6 @@
             }).catch(err => {
                 console.error(err);
                 alert("Erro ao gerar PDF.");
-                // Restaura em caso de erro também
                 botoes.forEach(btn => btn.style.display = '');
                 document.querySelector('.tabs').style.display = 'flex';
                 document.querySelector('.header-badge').style.display = 'block';
@@ -992,7 +981,6 @@
             }
         }
         
-        // Funções placeholders para os botões do relatório não quebrarem
         function exportarDados() { alert("Funcionalidade em desenvolvimento."); }
         function limparTodosDados() { 
             if(confirm("Deseja apagar TODO o histórico?")) {
@@ -1000,6 +988,56 @@
                 carregarHistorico();
                 alert("Histórico limpo.");
             }
+        }
+
+        // --- FUNÇÃO DE RELATÓRIOS (NOVA) ---
+        function atualizarRelatorios() {
+            // Tenta pegar do banco correto (checklists_volpini)
+            const db = JSON.parse(localStorage.getItem('checklists_volpini') || '[]');
+
+            // 1. Total Geral
+            document.getElementById('totalChecklists').textContent = db.length;
+
+            // 2. Checklists do Mês Atual
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth();
+            const anoAtual = hoje.getFullYear();
+
+            const doMes = db.filter(item => {
+                if(!item.data_criacao) return false;
+                const dataItem = new Date(item.data_criacao); 
+                return dataItem.getMonth() === mesAtual && dataItem.getFullYear() === anoAtual;
+            });
+            document.getElementById('checklistsMes').textContent = doMes.length;
+
+            // 3. Top Marcas (Gráfico Simples)
+            const marcas = {};
+            db.forEach(item => {
+                const modeloTexto = item.modelo || 'Não Informado';
+                const m = modeloTexto.split(' ')[0].toUpperCase(); // Pega a primeira palavra (FIAT, HONDA)
+                marcas[m] = (marcas[m] || 0) + 1;
+            });
+
+            const sortedMarcas = Object.entries(marcas).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+            let htmlGrafico = '';
+            sortedMarcas.forEach(([marca, qtd]) => {
+                const pct = (qtd / db.length) * 100;
+                htmlGrafico += `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:2px;">
+                            <strong>${marca}</strong>
+                            <span>${qtd}</span>
+                        </div>
+                        <div style="background:#eee; height:8px; border-radius:4px; overflow:hidden;">
+                            <div style="background:var(--color-primary); width:${pct}%; height:100%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if(sortedMarcas.length === 0) htmlGrafico = '<p style="text-align:center; color:#999; font-size:12px;">Sem dados suficientes.</p>';
+            document.getElementById('graficoMarcas').innerHTML = htmlGrafico;
         }
 
         // Inicialização
