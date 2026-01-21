@@ -324,45 +324,92 @@
                     </div>
                 </div>
 
-                <!-- FORMULÁRIO TIPO PLANILHA -->
-                <div class="form-row two">
-                    <div class="form-group">
-                        <label for="descricaoItem">Peça / Serviço</label>
-                        <input type="text" id="descricaoItem" placeholder="Ex: PARACHOQUE DIANTEIRO">
-                    </div>
-                    <div class="form-group">
-                        <label for="valorItem">Valor (R$)</label>
-                        <input type="number" id="valorItem" step="0.01" min="0" placeholder="0,00">
-                    </div>
-                </div>
+              <!-- DENTRO DA DIV #orcamento -->
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <button type="button" class="btn-primary" onclick="adicionarItemManual()">➕ Adicionar linha</button>
-                    </div>
-                </div>
+<!-- 1. Adicione a seleção de Tipo (Peça ou Serviço) no formulário -->
+<div class="form-row">
+    <div class="form-group">
+        <label>Tipo do Item:</label>
+        <div class="checkbox-group" style="margin-top: 5px;">
+            <div class="checkbox-item">
+                <input type="radio" id="tipoPeca" name="tipoItem" value="peca" checked>
+                <label for="tipoPeca">Peça</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="radio" id="tipoServico" name="tipoItem" value="servico">
+                <label for="tipoServico">Serviço</label>
+            </div>
+        </div>
+    </div>
+</div>
 
-                <!-- TABELA ESTILO PLANILHA -->
-                <div style="margin-top:20px;">
-                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                        <thead>
-                            <tr style="background:#f7f7f7;">
-                                <th style="border:1px solid #ddd; padding:6px; text-align:left;">Peça / Serviço</th>
-                                <th style="border:1px solid #ddd; padding:6px; text-align:right;">Valor (R$)</th>
-                                <th style="border:1px solid #ddd; padding:6px; text-align:center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaItens"></tbody>
-                        <tfoot>
-                            <tr>
-                                <td style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">Total Geral:</td>
-                                <td id="totalGeral" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">R$ 0,00</td>
-                                <td style="border:1px solid #ddd; padding:6px;"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+<div class="form-row two">
+    <div class="form-group">
+        <label for="descricaoItem">Descrição</label>
+        <input type="text" id="descricaoItem" placeholder="Ex: Pastilha de Freio / Mão de obra">
+    </div>
+    <div class="form-group">
+        <label for="valorItem">Valor (R$)</label>
+        <input type="number" id="valorItem" step="0.01" min="0" placeholder="0,00">
+    </div>
+</div>
 
+<div class="form-row">
+    <div class="form-group">
+        <button type="button" class="btn-primary" onclick="adicionarItemManual()">➕ Adicionar</button>
+    </div>
+</div>
+
+<!-- 2. Substitua a tabela antiga por DUAS tabelas novas -->
+<div style="margin-top:20px;">
+    
+    <!-- SEÇÃO DE PEÇAS -->
+    <h4 style="border-bottom: 2px solid #e41616; padding-bottom: 5px; color: #333;">🔩 Peças</h4>
+    <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom: 10px;">
+        <thead>
+            <tr style="background:#f7f7f7;">
+                <th style="border:1px solid #ddd; padding:6px; text-align:left;">Descrição</th>
+                <th style="border:1px solid #ddd; padding:6px; text-align:right; width: 100px;">Valor</th>
+                <th style="border:1px solid #ddd; padding:6px; text-align:center; width: 50px;">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaPecas"></tbody>
+        <tfoot>
+            <tr>
+                <td style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">Total Peças:</td>
+                <td id="totalPecas" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold; color: #e41616;">R$ 0,00</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- SEÇÃO DE SERVIÇOS -->
+    <h4 style="border-bottom: 2px solid #0056b3; padding-bottom: 5px; color: #333; margin-top: 25px;">🔧 Serviços</h4>
+    <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom: 10px;">
+        <thead>
+            <tr style="background:#f7f7f7;">
+                <th style="border:1px solid #ddd; padding:6px; text-align:left;">Descrição</th>
+                <th style="border:1px solid #ddd; padding:6px; text-align:right; width: 100px;">Valor</th>
+                <th style="border:1px solid #ddd; padding:6px; text-align:center; width: 50px;">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaServicos"></tbody>
+        <tfoot>
+            <tr>
+                <td style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">Total Serviços:</td>
+                <td id="totalServicos" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold; color: #0056b3;">R$ 0,00</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- TOTAL GERAL (SOMA DOS DOIS) -->
+    <div style="background: #eee; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: right;">
+        <span style="font-size: 14px; font-weight: bold; color: #555;">TOTAL GERAL (Peças + Serviços):</span>
+        <div id="totalGeralFinal" style="font-size: 24px; font-weight: bold; color: #28a745;">R$ 0,00</div>
+    </div>
+
+</div>
                 <div class="action-buttons">
                     <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
                 </div>
@@ -660,8 +707,8 @@ function salvarChecklist() {
                     scale: 2,
                     useCORS: true,
                     scrollY: 0,
-                    windowWidth: document.documentElement.offsetWidth
-                },
+windowWidth: document.documentElement.offsetWidth
+},
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
@@ -764,67 +811,92 @@ function salvarChecklist() {
             document.getElementById('graficoMarcas').innerHTML = htmlGrafico;
         }
 
-        // ORÇAMENTO – PEÇAS & SERVIÇOS (planilha simples)
-        let itensOrcamento = [];
+// ORÇAMENTO - PEÇAS & SERVIÇOS - SEPARADOS
+let itensOrcamento = [];
 
-        function adicionarItemManual() {
-            const descricaoInput = document.getElementById('descricaoItem');
-            const valorInput = document.getElementById('valorItem');
+function adicionarItemManual() {
+    const descricaoInput = document.getElementById('descricaoItem');
+    const valorInput = document.getElementById('valorItem');
+    
+    // Captura qual tipo foi selecionado (radio button)
+    const tipo = document.querySelector('input[name="tipoItem"]:checked').value; 
 
-            const descricao = descricaoInput.value.trim();
-            const valor = parseFloat(valorInput.value || '0');
+    const descricao = descricaoInput.value.trim();
+    const valor = parseFloat(valorInput.value || '0');
 
-            if (!descricao) {
-                alert('Informe a peça/serviço.');
-                descricaoInput.focus();
-                return;
-            }
-            if (isNaN(valor) || valor < 0) {
-                alert('Informe um valor válido.');
-                valorInput.focus();
-                return;
-            }
+    if (!descricao) {
+        alert('Informe a descrição do item.');
+        descricaoInput.focus();
+        return;
+    }
+    if (isNaN(valor) || valor < 0) {
+        alert('Informe um valor válido.');
+        valorInput.focus();
+        return;
+    }
 
-            const item = {
-                id: Date.now(),
-                descricao,
-                valor
-            };
+    const item = {
+        id: Date.now(),
+        descricao,
+        valor,
+        tipo // salva 'peca' ou 'servico'
+    };
 
-            itensOrcamento.push(item);
-            renderizarTabela();
-            descricaoInput.value = '';
-            valorInput.value = '';
-            descricaoInput.focus();
+    itensOrcamento.push(item);
+    renderizarTabela();
+    
+    descricaoInput.value = '';
+    valorInput.value = '';
+    descricaoInput.focus();
+}
+
+function removerItem(id) {
+    itensOrcamento = itensOrcamento.filter(i => i.id !== id);
+    renderizarTabela();
+}
+
+function renderizarTabela() {
+    const tbodyPecas = document.getElementById('tabelaPecas');
+    const tbodyServicos = document.getElementById('tabelaServicos');
+    
+    const elTotalPecas = document.getElementById('totalPecas');
+    const elTotalServicos = document.getElementById('totalServicos');
+    const elTotalGeral = document.getElementById('totalGeralFinal');
+
+    // Limpa tabelas
+    if(tbodyPecas) tbodyPecas.innerHTML = '';
+    if(tbodyServicos) tbodyServicos.innerHTML = '';
+
+    let somaPecas = 0;
+    let somaServicos = 0;
+
+    itensOrcamento.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border:1px solid #ddd; padding:6px;">${item.descricao}</td>
+          <td style="border:1px solid #ddd; padding:6px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
+          <td style="border:1px solid #ddd; padding:6px; text-align:center;">
+            <button class="btn-small btn-danger" onclick="removerItem(${item.id})">🗑️</button>
+          </td>
+        `;
+
+        if (item.tipo === 'servico') {
+            somaServicos += item.valor;
+            if(tbodyServicos) tbodyServicos.appendChild(tr);
+        } else {
+            // Default é peça
+            somaPecas += item.valor;
+            if(tbodyPecas) tbodyPecas.appendChild(tr);
         }
+    });
 
-        function removerItem(id) {
-            itensOrcamento = itensOrcamento.filter(i => i.id !== id);
-            renderizarTabela();
-        }
-
-        function renderizarTabela() {
-            const tbody = document.getElementById('tabelaItens');
-            const totalSpan = document.getElementById('totalGeral');
-            tbody.innerHTML = '';
-
-            let totalGeral = 0;
-            itensOrcamento.forEach(item => {
-                totalGeral += item.valor;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                  <td style="border:1px solid #ddd; padding:6px;">${item.descricao}</td>
-                  <td style="border:1px solid #ddd; padding:6px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
-                  <td style="border:1px solid #ddd; padding:6px; text-align:center;">
-                    <button class="btn-small btn-danger" onclick="removerItem(${item.id})">🗑️</button>
-                  </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            totalGeral = isNaN(totalGeral) ? 0 : totalGeral;
-            totalSpan.textContent = 'R$ ' + totalGeral.toFixed(2);
-        }
+    // Atualiza totais na tela
+    if(elTotalPecas) elTotalPecas.textContent = 'R$ ' + somaPecas.toFixed(2);
+    if(elTotalServicos) elTotalServicos.textContent = 'R$ ' + somaServicos.toFixed(2);
+    
+    const somaTotal = somaPecas + somaServicos;
+    if(elTotalGeral) elTotalGeral.textContent = 'R$ ' + somaTotal.toFixed(2);
+}
 
         // ENTER nos campos de Peças & Serviços adiciona linha
         document.addEventListener('DOMContentLoaded', () => {
@@ -1153,3 +1225,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
+
+
