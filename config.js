@@ -17,7 +17,9 @@ window.OFICINA_CONFIG = {
     
     // === ENDEREÇO ===
     endereco: "R. D, 101 - Jardim Vera Cruz, Contagem - MG, 32260-630",  // ✅ Linha endereço
+    cnpj: "25.179.479/0001-04",
     
     // === CORES DOURADAS ===
     corPrimaria: "#d4af37"                              // ✅ Botões/títulos dourados
 };
+
