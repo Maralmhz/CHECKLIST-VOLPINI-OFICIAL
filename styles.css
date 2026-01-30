@@ -128,7 +128,7 @@ body {
     font-size: 14px;
     opacity: 0.9;
     margin-bottom: 8px;
-    color: #555555;
+    color: var(--color-primary);
 }
 
 .contato-info {
@@ -156,7 +156,7 @@ body {
 
 .cnpj-oficina {
     font-size: 11px;
-    color: #000000;
+    color: var(--color-primary);
     margin-top: 5px;
     font-weight: 300;
     opacity: 0.8;
@@ -811,7 +811,7 @@ button {
 }
 
 /* Cabeçalho do Papel */
-.os-header {
+.os- {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1094,4 +1094,5 @@ button {
 }
 
 </style>
+
 
