@@ -78,7 +78,7 @@ body {
 }
 
 .header {
-    background: #020d23;
+    background: #ffffff;
     color: var(--color-primary);
     padding: 30px 20px;
     display: flex;
@@ -128,7 +128,7 @@ body {
     font-size: 14px;
     opacity: 0.9;
     margin-bottom: 8px;
-    color: #555555;
+    color: var(--color-primary);
 }
 
 .contato-info {
@@ -156,7 +156,7 @@ body {
 
 .cnpj-oficina {
     font-size: 11px;
-    color: #d4af37;
+    color: var(--color-primary);
     margin-top: 5px;
     font-weight: 300;
     opacity: 0.8;
@@ -841,7 +841,7 @@ button {
 
 .os-oficina-sub {
     font-size: 11px;
-    color: #FFF;
+    color: #555;
     margin-top: 2px;
 }
 
@@ -1041,8 +1041,6 @@ button {
 
 
 </style>
-
-
 
 
 
