@@ -30,7 +30,7 @@
             ENDEREÇO DA OFICINA
         </div>
         <div class="cnpj-oficina" id="cnpj-oficina">
-    CNPJ:25.179.479/0001-04
+    CNPJ: 00.000.000/0000-00
 </div>
 
 
@@ -541,6 +541,7 @@
             <div id="nomeOficinaResumo" class="os-oficina-nome">NOME DA OFICINA</div>
             <div id="enderecoOficinaResumo" class="os-oficina-sub">Endereço da oficina</div>
             <div id="telefoneOficinaResumo" class="os-oficina-sub">Telefone</div>
+            <div id="cnpjOficinaResumo" class="os-oficina-sub">CNPJ da oficina</div>
           </div>
         </div>
         <div class="os-header-right">
@@ -610,10 +611,11 @@
         <div class="os-assina-box">Assinatura do Técnico</div>
       </div>
 
-      <!-- RODAPÉ -->
-      <div class="os-footer" id="rRodape">
-        Gerado via App Checklist Oficina v3.0
-      </div>
+     <!-- RODAPÉ -->
+<div class="os-footer" id="rRodape">
+  <span id="rodape-texto">Carregando...</span>  <!-- Ficará dinâmico -->
+</div>
+
 
     </div> <!-- FIM DA FOLHA -->
 
@@ -912,6 +914,12 @@ checklist.itensOrcamento = itensOrcamento || [];
 
             const botoes = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons');
             botoes.forEach(btn => btn.style.display = 'none');
+            
+             // === FIX RODAPÉ ===
+    const rodape = document.querySelector('.os-footer');
+    const rodapeVisible = rodape.style.display;  // Salva estado atual
+    rodape.style.display = 'block !important';   // Força visível no PDF
+    // === FIM FIX ===
 
             const opt = {
     margin: [10, 15, 10, 15],  // ✅ MARGEM adequada
@@ -1487,6 +1495,7 @@ function atualizarResumoOS() {
     document.getElementById('nomeOficinaResumo').textContent = document.getElementById('nome-oficina')?.textContent || 'OFICINA';
     document.getElementById('enderecoOficinaResumo').textContent = document.getElementById('endereco-oficina')?.textContent || '';
     document.getElementById('telefoneOficinaResumo').textContent = document.getElementById('telefone-oficina')?.textContent || '';
+    document.getElementById('cnpjOficinaResumo').textContent = document.getElementById('cnpj-oficina')?.textContent || 'CNPJ da oficina';
     
     // Número da OS
     document.getElementById('osNumero').textContent = gerarNumeroOS();
@@ -1595,6 +1604,10 @@ document.getElementById('rCelular').textContent = document.getElementById('celul
     // TOTAL GERAL
     const totalGeral = document.getElementById('totalGeralFinal');
     document.getElementById('rTotalGeral').textContent = totalGeral ? totalGeral.textContent : 'R$ 0,00';
+    
+    // RODAPÉ - ADICIONE AQUI
+document.getElementById('rodape-texto').textContent = `Checklist gerado por ${document.getElementById('nome-oficina')?.textContent || 'Oficina'} CNPJ ${document.getElementById('cnpj-oficina')?.textContent || ''} - ${new Date().toLocaleString('pt-BR')}`;
+
 }
 
 
@@ -1701,14 +1714,13 @@ function prevStep(step) {
 </button>
 <script src="config.js"></script>
 <script src="app.js"></script>
+    
+    <!-- RODAPÉ FIXO -->
+<div class="os-footer" id="rRodape" style="position: fixed; bottom: 0; left: 0; right: 0; width: 100%; text-align: center; font-size: 10px; background: #f8f9fa; padding: 8px 12px; border-top: 2px solid var(--color-primary); z-index: 9999; box-sizing: border-box; font-family: Arial, sans-serif;">
+    <span id="rodape-texto">Developed by Hallz Branding 3199676-6963</span>
+</div>
+
 
 </body>
 </html>
-
-
-
-
-
-
-
 
