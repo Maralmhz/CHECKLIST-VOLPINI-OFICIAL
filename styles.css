@@ -78,7 +78,7 @@ body {
 }
 
 .header {
-    background: #ffffff;
+    background: #030212;
     color: var(--color-primary);
     padding: 30px 20px;
     display: flex;
@@ -1133,4 +1133,5 @@ button {
 }
 
 </style>
+
 
