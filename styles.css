@@ -845,17 +845,27 @@ button {
 }
 
 .os-oficina-nome {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     color: var(--color-primary);
     text-transform: uppercase;
+    line-height: 1.2;
 }
 
 .os-oficina-sub {
     font-size: 11px;
     color: #555;
     margin-top: 2px;
+    line-height: 1.2;
 }
+
+.os-oficina-sub .whatsapp-icon {
+    width: 12px;
+    height: 12px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
 
 .os-header-right {
     text-align: right;
@@ -1133,5 +1143,3 @@ button {
 }
 
 </style>
-
-
