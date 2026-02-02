@@ -257,6 +257,15 @@
             </div>
         </div>
 
+        <div class="form-row full">
+    <div class="form-group">
+        <label for="obsInspecao">Observações da inspeção</label>
+        <textarea id="obsInspecao" name="obsInspecao"
+                  placeholder="Ex.: Vazamento de óleo no motor, ar condicionado não gela, lanterna traseira quebrada..."
+                  style="height: 60px; min-height: 60px;"></textarea>
+    </div>
+</div>
+
         <!-- BOTÕES DE NAVEGAÇÃO -->
         <div class="wizard-buttons">
             <button type="button" class="btn-secondary" onclick="prevStep(1)">⬅️ Voltar</button>
@@ -580,6 +589,43 @@
           <!-- O Javascript vai preencher aqui -->
         </div>
       </div>
+        
+<!-- OBSERVAÇÕES DA INSPEÇÃO -->
+<div class="os-box mt-10">
+    <div class="os-box-title">OBSERVAÇÕES DA INSPEÇÃO</div>
+    <div id="rObsInspecao" class="os-text-area">-</div>
+</div>
+
+       <!-- ASSINATURAS -->
+      <div class="os-assinaturas">
+        <div class="os-assina-box">Assinatura do Cliente</div>
+        <div class="os-assina-box">Assinatura do Técnico</div>
+      </div>
+
+   <!-- RODAPÉ PÁGINA 1 -->
+<div class="os-footer">
+    <span id="rodape-texto-1">Carregando...</span>
+</div>
+
+<div class="force-page-break"></div>
+
+
+<!-- CABEÇALHO REPETIDO NA PÁGINA 2 -->
+<div class="os-header">
+    <div class="os-header-left">
+        <img id="logoResumo2" src="" alt="Logo" class="os-logo">
+        <div class="os-empresa-dados">
+            <div id="nomeOficinaResumo2" class="os-oficina-nome">NOME DA OFICINA</div>
+            <div id="enderecoOficinaResumo2" class="os-oficina-sub">Endereço da oficina</div>
+            <div id="telefoneOficinaResumo2" class="os-oficina-sub">Telefone</div>
+            <div id="cnpjOficinaResumo2" class="os-oficina-sub">CNPJ da oficina</div>
+        </div>
+    </div>
+    <div class="os-header-right">
+        <div class="os-label-os">ORDEM DE SERVIÇO</div>
+        <div id="osNumero2" class="os-numero-os">00000000</div>
+    </div>
+</div>
 
       <!-- TABELAS DE ORÇAMENTO -->
       <div class="os-grid-2 mt-10">
@@ -604,17 +650,18 @@
         <span>TOTAL GERAL:</span>
         <span id="rTotalGeral" class="os-total-value">R$ 0,00</span>
       </div>
-
-      <!-- ASSINATURAS -->
-      <div class="os-assinaturas">
-        <div class="os-assina-box">Assinatura do Cliente</div>
-        <div class="os-assina-box">Assinatura do Técnico</div>
-      </div>
-
-     <!-- RODAPÉ -->
-<div class="os-footer" id="rRodape">
-  <span id="rodape-texto">Carregando...</span>  <!-- Ficará dinâmico -->
+        
+ <!-- ASSINATURAS PÁGINA 2 -->
+<div class="os-assinaturas">
+    <div class="os-assina-box">Assinatura do Cliente</div>
+    <div class="os-assina-box">Assinatura do Técnico</div>
 </div>
+
+        <!-- RODAPÉ PÁGINA 2 -->
+<div class="os-footer">
+    <span id="rodape-texto-2">Carregando...</span>
+</div>
+
 
 
     </div> <!-- FIM DA FOLHA -->
@@ -1500,6 +1547,42 @@ function atualizarResumoOS() {
     // Número da OS
     document.getElementById('osNumero').textContent = gerarNumeroOS();
 
+        // === CABEÇALHO DA PÁGINA 2 (CÓPIA DO PRIMEIRO) ===
+    const logoResumo2 = document.getElementById('logoResumo2');
+    const nomeOficinaResumo2 = document.getElementById('nomeOficinaResumo2');
+    const enderecoOficinaResumo2 = document.getElementById('enderecoOficinaResumo2');
+    const telefoneOficinaResumo2 = document.getElementById('telefoneOficinaResumo2');
+    const cnpjOficinaResumo2 = document.getElementById('cnpjOficinaResumo2');
+    const osNumero2 = document.getElementById('osNumero2');
+
+    if (logoResumo2 && document.getElementById('logoResumo')) {
+        logoResumo2.src = document.getElementById('logoResumo').src;
+    }
+    if (nomeOficinaResumo2 && document.getElementById('nomeOficinaResumo')) {
+        nomeOficinaResumo2.textContent =
+            document.getElementById('nomeOficinaResumo').textContent;
+    }
+    if (enderecoOficinaResumo2 && document.getElementById('enderecoOficinaResumo')) {
+        enderecoOficinaResumo2.textContent =
+            document.getElementById('enderecoOficinaResumo').textContent;
+    }
+    if (telefoneOficinaResumo2 && document.getElementById('telefoneOficinaResumo')) {
+        telefoneOficinaResumo2.textContent =
+            document.getElementById('telefoneOficinaResumo').textContent;
+    }
+    if (cnpjOficinaResumo2 && document.getElementById('cnpjOficinaResumo')) {
+        cnpjOficinaResumo2.textContent =
+            document.getElementById('cnpjOficinaResumo').textContent;
+    }
+    if (osNumero2 && document.getElementById('osNumero')) {
+        osNumero2.textContent =
+            document.getElementById('osNumero').textContent;
+    }
+
+    // DAQUI PARA BAIXO CONTINUA O CÓDIGO QUE JÁ EXISTE (CLIENTE/VEÍCULO)
+    // document.getElementById('rNomeCliente').textContent = ...
+
+
     // Cliente
     
 document.getElementById('rNomeCliente').textContent = document.getElementById('nome_cliente')?.value || '-';
@@ -1527,6 +1610,13 @@ document.getElementById('rCelular').textContent = document.getElementById('celul
 
     // Serviços Solicitados
     document.getElementById('rServicos').textContent = document.getElementById('servicos')?.value || '-';
+
+    // Observações da Inspeção
+const obs = document.getElementById('obsInspecao')?.value || '-';
+if (document.getElementById('rObsInspecao')) {
+    document.getElementById('rObsInspecao').textContent = obs;
+}
+
 
     // === 2. INSPEÇÃO (CHECKBOXES) - LÓGICA REFORÇADA ===
     const areaBadges = document.getElementById('rChecklistBadges');
@@ -1605,9 +1695,14 @@ document.getElementById('rCelular').textContent = document.getElementById('celul
     const totalGeral = document.getElementById('totalGeralFinal');
     document.getElementById('rTotalGeral').textContent = totalGeral ? totalGeral.textContent : 'R$ 0,00';
     
-    // RODAPÉ - ADICIONE AQUI
-document.getElementById('rodape-texto').textContent = `Checklist gerado por ${document.getElementById('nome-oficina')?.textContent || 'Oficina'} CNPJ ${document.getElementById('cnpj-oficina')?.textContent || ''} - ${new Date().toLocaleString('pt-BR')}`;
+// RODAPÉ - MESMO TEXTO NAS DUAS PÁGINAS
+const textoRodape = `Checklist gerado por ${document.getElementById('nome-oficina')?.textContent || 'Oficina'} CNPJ ${document.getElementById('cnpj-oficina')?.textContent || ''} - ${new Date().toLocaleString('pt-BR')}`;
 
+const rod1 = document.getElementById('rodape-texto-1');
+const rod2 = document.getElementById('rodape-texto-2');
+
+if (rod1) rod1.textContent = textoRodape;
+if (rod2) rod2.textContent = textoRodape;
 }
 
 
@@ -1617,34 +1712,64 @@ function imprimirResumo() {
 }
 
 function gerarPDFResumo() {
-    atualizarResumoOS();
+    atualizarResumoOS();  // Garante dados atualizados
 
     const elemento = document.getElementById('resumoContainer');
-
+    
     const opt = {
-        margin: 10,
-        filename: 'OS-' + (document.getElementById('placa')?.value?.toUpperCase() || 'CHECKLIST') + '.pdf',
+        margin: [10, 10, 10, 10],  // Margens em mm: top, right, bottom, left
+        filename: 'OS-' + document.getElementById('placa')?.value?.toUpperCase() + '_CHECKLIST.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
             scrollY: 0,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            letterRendering: true
         },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait' 
         },
-        pagebreak: {
-            mode: ['css', 'legacy']
+        pagebreak: { mode: 'css', legacy: true },  // Quebras automáticas
+        pdfCallback: function(pdfObject) {
+            // Função que roda APÓS gerar o PDF - adiciona header/footer em TODAS as páginas
+            var totalPages = pdfObject.internal.getNumberOfPages();
+            
+            // Conteúdo do HEADER (ajuste posições em mm para A4 portrait: largura 210mm)
+            var headerText = document.getElementById('nomeOficinaResumo')?.textContent || 'OFICINA';
+            var osNumero = document.getElementById('osNumero')?.textContent || '';
+            
+            // Conteúdo do FOOTER
+            var footerText = document.getElementById('rodape-texto')?.textContent || 'Checklist gerado em ' + new Date().toLocaleString('pt-BR');
+            
+            for (var i = 1; i <= totalPages; i++) {  // Loop em todas as páginas (1-indexed)
+                pdfObject.setPage(i);
+                
+                // HEADER: topo da página (posição Y ~10mm)
+                pdfObject.setFontSize(14);
+                pdfObject.setFont('helvetica', 'bold');
+                pdfObject.setTextColor(50, 50, 50);  // Cor escura
+                pdfObject.text(headerText.toUpperCase(), 15, 12);  // Esquerda
+                pdfObject.text('ORDEM DE SERVIÇO: ' + osNumero, 150, 12);  // Direita
+                
+                // Linha separadora
+                pdfObject.setDrawColor(200, 200, 200);
+                pdfObject.setLineWidth(0.5);
+                pdfObject.line(10, 15, 200, 15);
+                
+                // FOOTER: fundo da página (posição Y ~287mm para A4 297mm)
+                pdfObject.setFontSize(9);
+                pdfObject.setFont('helvetica', 'normal');
+                pdfObject.setTextColor(100, 100, 100);
+                pdfObject.text(footerText, 15, 287);
+                pdfObject.text('Página ' + i + ' de ' + totalPages, 170, 287);  // Numeração
+            }
         }
     };
-
-    html2pdf()
-        .set(opt)
-        .from(elemento)
-        .save();
+    
+    html2pdf().set(opt).from(elemento).save();
 }
 
 
@@ -1723,4 +1848,3 @@ function prevStep(step) {
 
 </body>
 </html>
-
