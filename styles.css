@@ -78,7 +78,7 @@ body {
 }
 
 .header {
-    background: #010214;
+    background: #ffffff;
     color: var(--color-primary);
     padding: 30px 20px;
     display: flex;
@@ -128,7 +128,7 @@ body {
     font-size: 14px;
     opacity: 0.9;
     margin-bottom: 8px;
-    color: var(--color-primary);
+    color: #555555;
 }
 
 .contato-info {
@@ -787,9 +787,21 @@ button {
     table {
         page-break-inside: auto;
     }
+    
 }
 
-
+/* ✅ ADICIONE APENAS ESTAS 3 REGRAS 👇 */
+    .os-header {
+        position: running(header) !important;
+        display: block !important;
+    }
+    
+    .os-footer {
+        position: running(footer) !important;
+        display: block !important;
+    }
+    /* ✅ SEM novo @page aqui! */
+}
 .hidden {
     display: none !important;
 }
@@ -811,7 +823,7 @@ button {
 }
 
 /* Cabeçalho do Papel */
-.os- {
+.os-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -964,6 +976,15 @@ button {
     color: var(--color-success); /* Verde Sucesso */
 }
 
+.os-total-row::before {
+    content: "";
+    display: block;
+    height: 0;
+    page-break-before: always;
+    margin-top: -20px;
+}
+
+
 .os-assinaturas {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1039,6 +1060,24 @@ button {
     box-sizing: border-box;
 }
 
+/* ✅ QUEBRA FORÇADA QUE FUNCIONA NO PDF */
+.force-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Também no print */
+@media print {
+    .force-page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+    }
+}
+
+
 /* ========================
    WIZARD (PASSO A PASSO)
    ======================== */
@@ -1094,5 +1133,4 @@ button {
 }
 
 </style>
-
 
