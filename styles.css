@@ -322,6 +322,17 @@ textarea {
     height: 80px;
 }
 
+/* --- COLE ISSO LOGO ABAIXO DO #servicos --- */
+#descricaoItem {
+    height: 52px !important;       /* Mesma altura dos inputs */
+    min-height: 52px !important;   /* Trava para não ficar gigante */
+    resize: none;                  /* Tira a opção de arrastar */
+    padding: 14px 16px;            /* Mesmo espaçamento interno */
+    line-height: 1.5;              /* Centraliza o texto verticalmente */
+    overflow: hidden;              /* Esconde barra de rolagem */
+}
+
+
 /* --- CHECKBOXES ESTILO BOTÃO (MATERIAL DESIGN) --- */
 .checkbox-group {
     display: grid;
@@ -839,8 +850,8 @@ button {
 }
 
 .os-logo {
-    width: 70px;
-    height: 70px;
+    width: 85px;  /* ← maior */
+    height: 85px;
     object-fit: contain;
 }
 
@@ -879,7 +890,7 @@ button {
 }
 
 .os-numero-os {
-    font-size: 20px;
+    font-size: 18px;  /* ← um pouco menor */
     font-weight: 900;
     color: var(--color-primary);
 }
@@ -959,11 +970,13 @@ button {
     border-collapse: collapse;
     font-size: 11px;
 }
+
 .os-table th, .os-table td {
-    border: 1px solid #e0e0e0;
-    padding: 6px;
-    text-align: left;
+border: 1px solid #e0e0e0;
+padding: 6px;
+text-align: left;
 }
+
 .os-table td:last-child {
     text-align: right;
     width: 70px;
@@ -1039,10 +1052,6 @@ button {
         padding-bottom: 8px !important;
     }
     
-    .os-logo {
-        max-width: 50px !important;
-        max-height: 50px !important;
-    }
     
     .os-header-right {
         margin-top: -5px !important;
@@ -1143,3 +1152,7 @@ button {
 }
 
 </style>
+
+
+
+
