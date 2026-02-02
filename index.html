@@ -419,7 +419,7 @@
 <div class="form-row two">
     <div class="form-group">
         <label for="descricaoItem">Descrição</label>
-        <input type="text" id="descricaoItem" placeholder="Ex: Pastilha de Freio / Mão de obra">
+        <textarea id="descricaoItem" rows="1" placeholder="Ex: Pastilha de Freio/Mão de obra (Enter)..."></textarea>
     </div>
     <div class="form-group">
         <label for="valorItem">Valor (R$)</label>
@@ -429,7 +429,10 @@
 
 <div class="form-row">
     <div class="form-group">
-        <button type="button" class="btn-primary" onclick="adicionarItemManual()">➕ Adicionar</button>
+<button type="button" class="btn-primary" id="btnAdicionarItem" onclick="adicionarItemManual()">
+    ➕ Adicionar
+</button>
+
     </div>
 </div>
 
@@ -549,7 +552,10 @@
           <div class="os-empresa-dados">
             <div id="nomeOficinaResumo" class="os-oficina-nome">NOME DA OFICINA</div>
             <div id="enderecoOficinaResumo" class="os-oficina-sub">Endereço da oficina</div>
-            <div id="telefoneOficinaResumo" class="os-oficina-sub">Telefone</div>
+<div class="os-oficina-sub">
+    <img src="whatsapp.png" alt="WhatsApp" class="whatsapp-icon">
+    <span id="telefoneOficinaResumo">00 00000-0000</span>
+</div>
             <div id="cnpjOficinaResumo" class="os-oficina-sub">CNPJ da oficina</div>
           </div>
         </div>
@@ -617,7 +623,10 @@
         <div class="os-empresa-dados">
             <div id="nomeOficinaResumo2" class="os-oficina-nome">NOME DA OFICINA</div>
             <div id="enderecoOficinaResumo2" class="os-oficina-sub">Endereço da oficina</div>
-            <div id="telefoneOficinaResumo2" class="os-oficina-sub">Telefone</div>
+<div class="os-oficina-sub">
+    <img src="whatsapp.png" alt="WhatsApp" class="whatsapp-icon">
+    <span id="telefoneOficinaResumo2">00 00000-0000</span>
+</div>
             <div id="cnpjOficinaResumo2" class="os-oficina-sub">CNPJ da oficina</div>
         </div>
     </div>
@@ -1845,6 +1854,31 @@ function prevStep(step) {
     <span id="rodape-texto">Developed by Hallz Branding 3199676-6963</span>
 </div>
 
+    <script>
+    // Atalho: ENTER na Descrição -> Pula para o Valor
+    document.getElementById('descricaoItem').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // Impede de pular linha no texto
+            document.getElementById('valorItem').focus(); // Joga o foco pro Valor
+        }
+    });
+
+    // Atalho: ENTER no Valor -> Clica no botão Adicionar
+    document.getElementById('valorItem').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            // Clica no botão adicionar automaticamente
+            document.getElementById('btnAdicionarItem').click(); 
+            
+            // Opcional: Joga o foco de volta pra descrição pra você continuar digitando
+            setTimeout(function() {
+                document.getElementById('descricaoItem').focus();
+            }, 100); 
+        }
+    });
+</script>
+
 
 </body>
 </html>
+
