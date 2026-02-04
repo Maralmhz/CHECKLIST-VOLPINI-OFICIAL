@@ -7,7 +7,7 @@
 
 window.OFICINA_CONFIG = {
     // === INFORMAÇÕES DA OFICINA ===
-    nome: "VOLPINE",                                    // ✅ Header h1
+    nome: "VOLPINI",                                    // ✅ Header h1
     subtitulo: "CHECKLIST DE ENTRADA E INSPEÇÃO",       // ✅ Header p
     
     // === CONTATOS ===
@@ -16,10 +16,11 @@ window.OFICINA_CONFIG = {
     telefone2: "(00) 0000-0000",                        // Opcional
     
     // === ENDEREÇO ===
-    endereco: "R. D, 101 - Jardim Vera Cruz, Contagem - MG, 32260-630",  // ✅ Linha endereço
+    endereco: "R. D, 101 - inconfidentes, Contagem - MG, 32.260-630",  // ✅ Linha endereço
     cnpj: "25.179.479/0001-04",
     
     // === CORES DOURADAS ===
     corPrimaria: "#d4af37"                              // ✅ Botões/títulos dourados
 };
+
 
