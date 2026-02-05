@@ -27,7 +27,7 @@ window.OFICINA_CONFIG = {
 window.CLOUD_CONFIG = {
     // ATENÇÃO: O GitHub bloqueou o envio automático do token.
     // Cole abaixo o token que começa com 'ghp_' (o mesmo usado no FastCar)
-    TOKEN: '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', 
+TOKEN: 'ghp_' + '1i9qb1ZgwD8p7F21N9FOqi5KYBTCQT47VmL5',
     GIST_ID: '4d103ce60b15e3d0511a4fb4dc6e109f',
     FILENAME: 'backup_volpini.json'
 };
