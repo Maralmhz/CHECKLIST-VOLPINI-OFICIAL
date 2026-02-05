@@ -10,20 +10,23 @@ async function salvarComFirebase(checklistData) {
         }
     } catch (e) {
         console.error("Erro ao carregar Firebase:", e);
+        throw e; // Propaga o erro para o checklist.js tratar
     }
 }
 
 async function sincronizarChecklists() {
     const btn = document.getElementById('btnSync');
-    btn.textContent = '⏳ Baixando...';
+    const txtOriginal = btn.textContent;
+    btn.textContent = '⏳ Conectando...';
     btn.disabled = true;
 
     try {
         const modulo = await import('./firebase_app.js');
         if (modulo && modulo.buscarChecklistsNuvem) {
+            btn.textContent = '⏳ Baixando...';
             const dadosNuvem = await modulo.buscarChecklistsNuvem();
+            
             if (dadosNuvem.length > 0) {
-                // Mesclar com local (evitando duplicatas pelo ID)
                 let local = JSON.parse(localStorage.getItem('checklists') || '[]');
                 const idsLocais = new Set(local.map(c => c.id));
                 
@@ -39,14 +42,14 @@ async function sincronizarChecklists() {
                 carregarHistorico();
                 alert(`✅ Sincronização concluída! ${novos} novos checklists baixados.`);
             } else {
-                alert("📭 Nenhum checklist encontrado na nuvem para esta oficina.");
+                alert("📭 Nenhum checklist encontrado na nuvem para esta oficina (ou erro de configuração).");
             }
         }
     } catch (e) {
         console.error("Erro sync:", e);
-        alert("❌ Erro ao sincronizar. Verifique sua internet.");
+        alert("❌ Erro ao sincronizar.\n\nDetalhe: " + (e.message || e) + "\n\nVerifique:\n1. Conexão com a Internet\n2. Token no arquivo config.js");
     } finally {
-        btn.textContent = '🔄 Sincronizar Nuvem';
+        btn.textContent = txtOriginal;
         btn.disabled = false;
     }
 }
@@ -149,7 +152,6 @@ function renderizarTabela() {
   if (elTotalServicos) elTotalServicos.textContent = `R$ ${somaServicos.toFixed(2)}`;
   if (elTotalGeral) elTotalGeral.textContent = `R$ ${somaTotal.toFixed(2)}`;
   
-  // Atualiza totais no resumo se existirem
   const rTotalGeral = document.getElementById("rTotalGeral");
   if (rTotalGeral) rTotalGeral.textContent = `R$ ${somaTotal.toFixed(2)}`;
 }
@@ -171,7 +173,7 @@ function switchTab(tabId) {
     if (tabId === 'orcamento') atualizarResumoVeiculo();
 }
 
-function salvarChecklist() {
+async function salvarChecklist() {
     const placa = document.getElementById('placa').value;
     if (!placa) {
         alert("Por favor, preencha pelo menos a PLACA para salvar.");
@@ -205,18 +207,39 @@ function salvarChecklist() {
     checklist.itensOrcamento = itensOrcamento || [];
     checklist.complexidade = document.getElementById('complexidade')?.value || '';
     
+    // 1. SALVAR LOCALMENTE (SEMPRE)
     let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
     checklists.push(checklist);
     localStorage.setItem('checklists', JSON.stringify(checklists));
+
+    // Feedback Visual
+    const btnSalvar = document.querySelector('button[onclick="salvarChecklist()"]');
+    const txtOriginal = btnSalvar ? btnSalvar.textContent : "Salvar";
+    if(btnSalvar) {
+        btnSalvar.textContent = "☁️ Salvando Nuvem...";
+        btnSalvar.disabled = true;
+    }
     
-    // Integração Firebase
-    salvarComFirebase(checklist);
+    // 2. TENTAR SALVAR NA NUVEM
+    let msgExtra = "";
+    try {
+        await salvarComFirebase(checklist);
+        msgExtra = " e na Nuvem!";
+    } catch (e) {
+        console.warn("Falha nuvem:", e);
+        msgExtra = ".\n\n⚠️ AVISO: Salvo APENAS LOCALMENTE.\nErro ao salvar na nuvem: " + (e.message || "Erro desconhecido");
+    } finally {
+        if(btnSalvar) {
+            btnSalvar.textContent = txtOriginal;
+            btnSalvar.disabled = false;
+        }
+    }
 
     // Limpeza e reset
     itensOrcamento = [];
     renderizarTabela();
 
-    alert("✅ Checklist salvo com sucesso no Histórico e Nuvem!");
+    alert("✅ Checklist salvo com sucesso no Histórico" + msgExtra);
     document.getElementById('checklistForm').reset();
     atualizarResumoVeiculo();
     switchTab('historico');
@@ -264,10 +287,8 @@ function carregarChecklist(id) {
 
     switchTab('novo-checklist');
 
-    // Normalização de campos
     if (item.nome_cliente && !item.nomecliente) item.nomecliente = item.nome_cliente;
 
-    // Preenche campos principais
     const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; }
     
     setVal('nomecliente', item.nomecliente);
@@ -276,7 +297,6 @@ function carregarChecklist(id) {
     setVal('placa', item.placa);
     setVal('modelo', item.modelo);
 
-    // Preenche genéricos
     for (const key in item) {
         const el = document.getElementsByName(key)[0];
         if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
@@ -284,14 +304,12 @@ function carregarChecklist(id) {
         }
     }
 
-    // Checkboxes
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
     if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
     if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
     if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
     
-    // Peças e Serviços
     itensOrcamento = item.itensOrcamento || [];
     if(document.getElementById('complexidade')) document.getElementById('complexidade').value = item.complexidade || '';
     renderizarTabela();
@@ -452,7 +470,6 @@ function atualizarResumoVeiculo() {
     const vComb = document.getElementById('combustivel')?.value || '-';
     const vComplex = document.getElementById('complexidade')?.value || '-';
 
-    // Atualiza todos os spans de resumo em todas as abas
     const setContent = (id, val) => { if(document.getElementById(id)) document.getElementById(id).textContent = val; }
 
     setContent('resumoPlaca', vPlaca);
@@ -939,7 +956,6 @@ function gerarPDFResumo() {
 }
 
 function gerarPDF() {
-    // Função legada para PDF completo (caso ainda seja usada)
     const elemento = document.querySelector('.container');
     const originalBodyOverflow = document.body.style.overflow;
     const originalBodyPadding = document.body.style.padding;
@@ -984,9 +1000,6 @@ function gerarPDF() {
     });
 }
 
-// ==========================================
-// WIZARD
-// ==========================================
 function showStep(stepNumber) {
     document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
     document.getElementById('step' + stepNumber).classList.add('active');
@@ -1011,14 +1024,10 @@ function nextStep(step) {
 
 function prevStep(step) { showStep(step); }
 
-// ==========================================
-// INICIALIZAÇÃO
-// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   renderizarGaleria();
   atualizarBarraOS();
 
-  // Atalhos de teclado para Orçamento
   const descricaoItem = document.getElementById("descricaoItem");
   const valorItem = document.getElementById("valorItem");
 
@@ -1039,7 +1048,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Monitoramento de campos
   const camposMonitorados = ['placa', 'modelo', 'chassi', 'km_entrada', 'data', 'hora', 'combustivel', 'complexidade'];
   camposMonitorados.forEach(id => {
       const el = document.getElementById(id);
@@ -1050,7 +1058,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('data')?.addEventListener('input', atualizarBarraOS);
 });
 
-// Service Worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('data:application/javascript;base64,CmNvbnN0IENBQ0hFX05BTUUgPSAnY2hlY2tsaXN0LXYzLWNhY2hlJzsKY29uc3QgVVJMU19UT19DQUNIRSA9IFsKICAnLycsCiAgJy9pbmRleC5odG1sJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgKGV2ZW50KSA9PiB7CiAgY29uc3QgY2FjaGVPcGVuID0gY2FjaGVzLm9wZW4oQ0FDSEVfTkFNRSkudGhlbigY2xpZW50KSA9PiB7CiAgICByZXR1cm4gY2xpZW50LmFkZEFsbChVUkxzX1RPX0NBQ0hFKTsKICB9KTsKICBldmVudC53YWl0VW50aWwoKGNhY2hlT3Blbik7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIChldmVudCkgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpLnRoZW4oKHJlc3BvbnNlKSA9PiB7CiAgICAgIGlmIChyZXNwb25zZSkgewogICAgICAgIHJldHVybiByZXNwb25zZTsKICAgICAgfQogICAgICByZXR1cm4gZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICB9KQogICk7Cn0pOwo=');
 }
