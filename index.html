@@ -637,22 +637,31 @@
 </div>
 
       <!-- TABELAS DE ORÇAMENTO -->
-      <div class="os-grid-2 mt-10">
-        <!-- PEÇAS -->
-        <div>
-           <div class="os-table-header" style="border-bottom: 2px solid #e41616;">PEÇAS</div>
-           <table class="os-table" id="rTabelaPecas">
-             <!-- O Javascript vai preencher aqui -->
-           </table>
-        </div>
-        <!-- SERVIÇOS -->
-        <div>
-           <div class="os-table-header" style="border-bottom: 2px solid #0056b3;">SERVIÇOS</div>
-           <table class="os-table" id="rTabelaServicos">
-             <!-- O Javascript vai preencher aqui -->
-           </table>
-        </div>
-      </div>
+<div class="os-grid-2 mt-10" style="gap:18px;">
+    
+<!-- PEÇAS -->
+<div>
+  <div class="os-table-header" style="border-bottom: 2px solid #e41616">PEÇAS</div>
+  <table class="os-table" id="rTabelaPecas"></table>
+
+  <div style="display:flex;justify-content:space-between;margin-top:8px;
+              padding:8px 10px;border:1px solid #e41616;border-radius:6px;">
+    <strong style="color:#e41616;">TOTAL PEÇAS</strong>
+    <span id="rTotalPecas" style="font-weight:700;color:#e41616;">R$ 0,00</span>
+  </div>
+</div>
+
+<!-- SERVIÇOS -->
+<div>
+  <div class="os-table-header" style="border-bottom: 2px solid #0056b3">SERVIÇOS</div>
+  <table class="os-table" id="rTabelaServicos"></table>
+
+  <div style="display:flex;justify-content:space-between;margin-top:8px;
+              padding:8px 10px;border:1px solid #0056b3;border-radius:6px;">
+    <strong style="color:#0056b3;">TOTAL SERVIÇOS</strong>
+    <span id="rTotalServicos" style="font-weight:700;color:#0056b3;">R$ 0,00</span>
+  </div>
+</div>
 
       <!-- TOTAL GERAL -->
       <div class="os-total-row">
@@ -676,8 +685,7 @@
     </div> <!-- FIM DA FOLHA -->
 
     <!-- BOTÕES DE AÇÃO DA ABA RESUMO -->
-    <div class="action-buttons">
-      <button type="button" class="btn-secondary" onclick="imprimirResumo()">🖨️ Imprimir</button>
+<div class="action-buttons no-pdf">
       <button type="button" class="btn-success" onclick="gerarPDFResumo()">📥 Baixar PDF</button>
        <button type="button" class="btn-primary" onclick="salvarChecklist()" style="background: #27ae60 !important;">💾 Salvar Completo</button>
     </div>
@@ -1103,40 +1111,44 @@ checklist.itensOrcamento = itensOrcamento || [];
 let itensOrcamento = [];
 
 function adicionarItemManual() {
-    const descricaoInput = document.getElementById('descricaoItem');
-    const valorInput = document.getElementById('valorItem');
-    
-    // Captura qual tipo foi selecionado (radio button)
-    const tipo = document.querySelector('input[name="tipoItem"]:checked').value; 
+  const descricaoInput = document.getElementById("descricaoItem");
+  const valorInput = document.getElementById("valorItem");
+  const tipo = document.querySelector('input[name="tipoItem"]:checked').value;
 
-    const descricao = descricaoInput.value.trim();
-    const valor = parseFloat(valorInput.value || '0');
+  const descricao = (descricaoInput.value || "").trim();
 
-    if (!descricao) {
-        alert('Informe a descrição do item.');
-        descricaoInput.focus();
-        return;
-    }
-    if (isNaN(valor) || valor < 0) {
-        alert('Informe um valor válido.');
-        valorInput.focus();
-        return;
-    }
+  // ✅ Se não digitar nada, considera 0
+  const valorBruto = (valorInput.value || "").toString().trim();
+  const valor = valorBruto === "" ? 0 : parseFloat(valorBruto);
 
-    const item = {
-        id: Date.now(),
-        descricao,
-        valor,
-        tipo // salva 'peca' ou 'servico'
-    };
-
-    itensOrcamento.push(item);
-    renderizarTabela();
-    
-    descricaoInput.value = '';
-    valorInput.value = '';
+  if (!descricao) {
+    alert("Informe a descrição do item.");
     descricaoInput.focus();
+    return;
+  }
+
+  // ✅ Aceita 0, só bloqueia se for NaN ou negativo
+  if (isNaN(valor) || valor < 0) {
+    alert("Informe um valor válido (0 ou maior).");
+    valorInput.focus();
+    return;
+  }
+
+  const item = {
+    id: Date.now(),
+    descricao,
+    valor,
+    tipo,
+  };
+
+  itensOrcamento.push(item);
+  renderizarTabela();
+
+  descricaoInput.value = "";
+  valorInput.value = "";
+  descricaoInput.focus();
 }
+
 
 function removerItem(id) {
     itensOrcamento = itensOrcamento.filter(i => i.id !== id);
@@ -1144,81 +1156,53 @@ function removerItem(id) {
 }
 
 function renderizarTabela() {
-    const tbodyPecas = document.getElementById('tabelaPecas');
-    const tbodyServicos = document.getElementById('tabelaServicos');
-    
-    const elTotalPecas = document.getElementById('totalPecas');
-    const elTotalServicos = document.getElementById('totalServicos');
-    const elTotalGeral = document.getElementById('totalGeralFinal');
+  const tbodyPecas = document.getElementById("tabelaPecas");
+  const tbodyServicos = document.getElementById("tabelaServicos");
 
-    // Limpa tabelas
-    if(tbodyPecas) tbodyPecas.innerHTML = '';
-    if(tbodyServicos) tbodyServicos.innerHTML = '';
+  const elTotalPecas = document.getElementById("totalPecas");
+  const elTotalServicos = document.getElementById("totalServicos");
+  const elTotalGeral = document.getElementById("totalGeralFinal");
 
-    let somaPecas = 0;
-    let somaServicos = 0;
+  if (tbodyPecas) tbodyPecas.innerHTML = "";
+  if (tbodyServicos) tbodyServicos.innerHTML = "";
 
-    itensOrcamento.forEach(item => {
-        const tr = document.createElement('tr');
-        
-       tr.innerHTML = `
-    <td style="border:1px solid #ddd; padding:6px;">${item.descricao}</td>
-    <td style="border:1px solid #ddd; padding:6px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
-    <td style="border:1px solid #ddd; padding:6px; text-align:center;">
+  let somaPecas = 0;
+  let somaServicos = 0;
+
+  itensOrcamento.forEach((item) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="border: 1px solid #ddd; padding: 6px;">${item.descricao}</td>
+      <td style="border: 1px solid #ddd; padding: 6px; text-align: right;">R$ ${Number(item.valor || 0).toFixed(2)}</td>
+      <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">
         <button class="btn-small btn-warning" onclick="editarItem(${item.id})" title="Editar">✏️</button>
         <button class="btn-small btn-danger" onclick="removerItem(${item.id})" title="Apagar">🗑️</button>
-    </td>
-`;
+      </td>
+    `;
 
+    if (item.tipo === "servico") {
+      somaServicos += Number(item.valor || 0);
+      if (tbodyServicos) tbodyServicos.appendChild(tr);
+    } else {
+      somaPecas += Number(item.valor || 0);
+      if (tbodyPecas) tbodyPecas.appendChild(tr);
+    }
+  });
 
-        if (item.tipo === 'servico') {
-            somaServicos += item.valor;
-            if(tbodyServicos) tbodyServicos.appendChild(tr);
-        } else {
-            // Default é peça
-            somaPecas += item.valor;
-            if(tbodyPecas) tbodyPecas.appendChild(tr);
-        }
-    });
+  const somaTotal = somaPecas + somaServicos;
 
-    // Atualiza totais na tela
-    if(elTotalPecas) elTotalPecas.textContent = 'R$ ' + somaPecas.toFixed(2);
-    if(elTotalServicos) elTotalServicos.textContent = 'R$ ' + somaServicos.toFixed(2);
-    
-    const somaTotal = somaPecas + somaServicos;
-    if(elTotalGeral) elTotalGeral.textContent = 'R$ ' + somaTotal.toFixed(2);
+  if (elTotalPecas) elTotalPecas.textContent = `R$ ${somaPecas.toFixed(2)}`;
+  if (elTotalServicos) elTotalServicos.textContent = `R$ ${somaServicos.toFixed(2)}`;
+  if (elTotalGeral) elTotalGeral.textContent = `R$ ${somaTotal.toFixed(2)}`;
+
+  // (Opcional) Se você usa o resumo com totais separados:
+  const rTotalPecas = document.getElementById("rTotalPecas");
+  const rTotalServicos = document.getElementById("rTotalServicos");
+  const rTotalGeral = document.getElementById("rTotalGeral");
+  if (rTotalPecas) rTotalPecas.textContent = `R$ ${somaPecas.toFixed(2)}`;
+  if (rTotalServicos) rTotalServicos.textContent = `R$ ${somaServicos.toFixed(2)}`;
+  if (rTotalGeral) rTotalGeral.textContent = `R$ ${somaTotal.toFixed(2)}`;
 }
-
-        // ENTER nos campos de Peças & Serviços adiciona linha
-        document.addEventListener('DOMContentLoaded', () => {
-            carregarHistorico();
-            atualizarResumoVeiculo();
-
-            const descricaoItem = document.getElementById('descricaoItem');
-            const valorItem = document.getElementById('valorItem');
-
-            descricaoItem.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    adicionarItemManual();
-                }
-            });
-
-            valorItem.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    adicionarItemManual();
-                }
-            });
-
-            const camposResumo = ['placa','modelo','chassi','km_entrada','data','hora','combustivel','complexidade'];
-            camposResumo.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                const tipo = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'time') ? 'change' : 'input';
-                el.addEventListener(tipo, atualizarResumoVeiculo);
-            });
-        });
 
         function atualizarResumoVeiculo() {
             const placa = document.getElementById('placa').value || '-';
@@ -1497,10 +1481,32 @@ function gerarPDFFotos() {
     mostrarAlerta('success', `✅ PDF gerado com ${fotosUsar.length} fotos (máximo 16)`);
 }
 
-// INICIALIZAR FOTOS
+// INICIALIZAR FOTOS + ATALHOS PEÇAS/SERVIÇOS
 document.addEventListener('DOMContentLoaded', () => {
-    renderizarGaleria();
+  renderizarGaleria();
+
+  const descricaoItem = document.getElementById("descricaoItem");
+  const valorItem = document.getElementById("valorItem");
+
+  if (descricaoItem) {
+    descricaoItem.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter") return;
+      if (event.shiftKey) return; // Shift+Enter quebra linha normal
+      event.preventDefault();     // Enter simples: vai para o preço
+      if (valorItem) valorItem.focus();
+    });
+  }
+
+  if (valorItem) {
+    valorItem.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter") return;
+      event.preventDefault();     // Enter no preço: adiciona
+      adicionarItemManual();
+      setTimeout(() => descricaoItem && descricaoItem.focus(), 0);
+    });
+  }
 });
+
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('data:application/javascript;base64,CmNvbnN0IENBQ0hFX05BTUUgPSAnY2hlY2tsaXN0LXYzLWNhY2hlJzsKY29uc3QgVVJMU19UT19DQUNIRSA9IFsKICAnLycsCiAgJy9pbmRleC5odG1sJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgKGV2ZW50KSA9PiB7CiAgY29uc3QgY2FjaGVPcGVuID0gY2FjaGVzLm9wZW4oQ0FDSEVfTkFNRSkudGhlbigY2xpZW50KSA9PiB7CiAgICByZXR1cm4gY2xpZW50LmFkZEFsbChVUkxzX1RPX0NBQ0hFKTsKICB9KTsKICBldmVudC53YWl0VW50aWwoKGNhY2hlT3Blbik7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIChldmVudCkgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpLnRoZW4oKHJlc3BvbnNlKSA9PiB7CiAgICAgIGlmIChyZXNwb25zZSkgewogICAgICAgIHJldHVybiByZXNwb25zZTsKICAgICAgfQogICAgICByZXR1cm4gZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICB9KQogICk7Cn0pOwo=');
@@ -1667,38 +1673,88 @@ if (document.getElementById('rObsInspecao')) {
         });
     }
 
-    // === 3. TABELAS DE ORÇAMENTO (Clona o HTML da aba Orçamento) ===
-    // PEÇAS
-    const origemPecas = document.getElementById('tabelaPecas'); // Tbody original
-    const destinoPecas = document.getElementById('rTabelaPecas'); // Tabela no resumo
-    destinoPecas.innerHTML = ''; 
+// === 3. TABELAS DE ORÇAMENTO (PDF: separado e estável) ===
+const origemPecas = document.getElementById('tabelaPecas');       // tbody
+const origemServicos = document.getElementById('tabelaServicos'); // tbody
 
-    if (origemPecas && origemPecas.rows.length > 0) {
-        // Copia linha por linha, mas remove o botão de excluir
-        Array.from(origemPecas.rows).forEach(row => {
-            let desc = row.cells[0].textContent;
-            let valor = row.cells[1].textContent;
-            // Cria nova linha limpa
-            destinoPecas.innerHTML += `<tr><td>${desc}</td><td style="text-align:right;">${valor}</td></tr>`;
-        });
-    } else {
-        destinoPecas.innerHTML = '<tr><td colspan="2" style="color:#999; text-align:center;">-</td></tr>';
-    }
+const destinoPecas = document.getElementById('rTabelaPecas');       // table
+const destinoServicos = document.getElementById('rTabelaServicos'); // table
 
-    // SERVIÇOS
-    const origemServicos = document.getElementById('tabelaServicos');
-    const destinoServicos = document.getElementById('rTabelaServicos');
-    destinoServicos.innerHTML = '';
+function montarTabelaResumo(destinoTable, origemTbody, corBorda) {
+  if (!destinoTable) return;
 
-    if (origemServicos && origemServicos.rows.length > 0) {
-        Array.from(origemServicos.rows).forEach(row => {
-            let desc = row.cells[0].textContent;
-            let valor = row.cells[1].textContent;
-            destinoServicos.innerHTML += `<tr><td>${desc}</td><td style="text-align:right;">${valor}</td></tr>`;
-        });
-    } else {
-        destinoServicos.innerHTML = '<tr><td colspan="2" style="color:#999; text-align:center;">-</td></tr>';
-    }
+  destinoTable.style.width = "100%";
+  destinoTable.style.borderCollapse = "collapse";
+  destinoTable.style.tableLayout = "fixed"; // chave para não “misturar” visualmente no PDF
+    destinoTable.style.border = `2px solid ${corBorda}`;
+destinoTable.style.borderRadius = "6px";
+
+
+  destinoTable.innerHTML = `
+    <thead>
+      <tr>
+        <th style="text-align:left;border-bottom:2px solid ${corBorda};padding:6px;font-size:11px;">DESCRIÇÃO</th>
+        <th style="text-align:right;border-bottom:2px solid ${corBorda};padding:6px;font-size:11px;width:90px;">VALOR</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = destinoTable.querySelector('tbody');
+
+  if (!origemTbody || origemTbody.rows.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="2" style="padding:8px;color:#999;text-align:center;">-</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  Array.from(origemTbody.rows).forEach(row => {
+    const desc = (row.cells[0]?.textContent || '').trim();
+    const valor = (row.cells[1]?.textContent || '').trim();
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="padding:6px;border-bottom:1px solid #eee;font-size:11px;word-wrap:break-word;">${desc}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;text-align:right;font-size:11px;white-space:nowrap;">${valor}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+montarTabelaResumo(destinoPecas, origemPecas, "#e41616");
+montarTabelaResumo(destinoServicos, origemServicos, "#0056b3");
+
+    function somarColunaValor(tbody) {
+  if (!tbody || !tbody.rows) return 0;
+  let soma = 0;
+
+  Array.from(tbody.rows).forEach(row => {
+    const texto = (row.cells[1]?.textContent || "")
+      .replace(/\s/g, "")
+      .replace("R$", "")
+      .replace(/\./g, "")
+      .replace(",", ".");
+
+    const n = parseFloat(texto);
+    if (!isNaN(n)) soma += n;
+  });
+
+  return soma;
+}
+
+// Totais (pega direto dos totais já calculados na aba Orçamento)
+const txtTotalPecas = document.getElementById("totalPecas")?.textContent || "R$ 0,00";
+const txtTotalServ  = document.getElementById("totalServicos")?.textContent || "R$ 0,00";
+
+const elRP = document.getElementById("rTotalPecas");
+const elRS = document.getElementById("rTotalServicos");
+
+if (elRP) elRP.textContent = txtTotalPecas;
+if (elRS) elRS.textContent = txtTotalServ;
+
+
+
 
     // TOTAL GERAL
     const totalGeral = document.getElementById('totalGeralFinal');
@@ -1714,72 +1770,33 @@ if (rod1) rod1.textContent = textoRodape;
 if (rod2) rod2.textContent = textoRodape;
 }
 
-
-function imprimirResumo() {
-    atualizarResumoOS(); // Garante que está atualizado
-    window.print(); // O CSS @media print fará o resto (esconder o resto do site)
-}
-
 function gerarPDFResumo() {
-    atualizarResumoOS();  // Garante dados atualizados
+  atualizarResumoOS();
 
-    const elemento = document.getElementById('resumoContainer');
-    
-    const opt = {
-        margin: [10, 10, 10, 10],  // Margens em mm: top, right, bottom, left
-        filename: 'OS-' + document.getElementById('placa')?.value?.toUpperCase() + '_CHECKLIST.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            scrollY: 0,
-            backgroundColor: '#ffffff',
-            letterRendering: true
-        },
-        jsPDF: { 
-            unit: 'mm', 
-            format: 'a4', 
-            orientation: 'portrait' 
-        },
-        pagebreak: { mode: 'css', legacy: true },  // Quebras automáticas
-        pdfCallback: function(pdfObject) {
-            // Função que roda APÓS gerar o PDF - adiciona header/footer em TODAS as páginas
-            var totalPages = pdfObject.internal.getNumberOfPages();
-            
-            // Conteúdo do HEADER (ajuste posições em mm para A4 portrait: largura 210mm)
-            var headerText = document.getElementById('nomeOficinaResumo')?.textContent || 'OFICINA';
-            var osNumero = document.getElementById('osNumero')?.textContent || '';
-            
-            // Conteúdo do FOOTER
-            var footerText = document.getElementById('rodape-texto')?.textContent || 'Checklist gerado em ' + new Date().toLocaleString('pt-BR');
-            
-            for (var i = 1; i <= totalPages; i++) {  // Loop em todas as páginas (1-indexed)
-                pdfObject.setPage(i);
-                
-                // HEADER: topo da página (posição Y ~10mm)
-                pdfObject.setFontSize(14);
-                pdfObject.setFont('helvetica', 'bold');
-                pdfObject.setTextColor(50, 50, 50);  // Cor escura
-                pdfObject.text(headerText.toUpperCase(), 15, 12);  // Esquerda
-                pdfObject.text('ORDEM DE SERVIÇO: ' + osNumero, 150, 12);  // Direita
-                
-                // Linha separadora
-                pdfObject.setDrawColor(200, 200, 200);
-                pdfObject.setLineWidth(0.5);
-                pdfObject.line(10, 15, 200, 15);
-                
-                // FOOTER: fundo da página (posição Y ~287mm para A4 297mm)
-                pdfObject.setFontSize(9);
-                pdfObject.setFont('helvetica', 'normal');
-                pdfObject.setTextColor(100, 100, 100);
-                pdfObject.text(footerText, 15, 287);
-                pdfObject.text('Página ' + i + ' de ' + totalPages, 170, 287);  // Numeração
-            }
-        }
-    };
-    
-    html2pdf().set(opt).from(elemento).save();
+  // 1) Esconde os botões só pro PDF
+  document.querySelectorAll('.no-pdf').forEach(el => el.style.display = 'none');
+
+  const elemento = document.getElementById('resumoContainer');
+
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `OS-${(document.getElementById('placa')?.value || '').toUpperCase()}_CHECKLIST.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
+  };
+
+  // 2) Gera o PDF e depois mostra os botões de novo
+  html2pdf().set(opt).from(elemento).save()
+    .then(() => {
+      document.querySelectorAll('.no-pdf').forEach(el => el.style.display = '');
+    })
+    .catch(() => {
+      document.querySelectorAll('.no-pdf').forEach(el => el.style.display = '');
+    });
 }
+
 
 
         function editarItem(id) {
@@ -1854,29 +1871,7 @@ function prevStep(step) {
     <span id="rodape-texto">Developed by Hallz Branding 3199676-6963</span>
 </div>
 
-    <script>
-    // Atalho: ENTER na Descrição -> Pula para o Valor
-    document.getElementById('descricaoItem').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault(); // Impede de pular linha no texto
-            document.getElementById('valorItem').focus(); // Joga o foco pro Valor
-        }
-    });
-
-    // Atalho: ENTER no Valor -> Clica no botão Adicionar
-    document.getElementById('valorItem').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            // Clica no botão adicionar automaticamente
-            document.getElementById('btnAdicionarItem').click(); 
-            
-            // Opcional: Joga o foco de volta pra descrição pra você continuar digitando
-            setTimeout(function() {
-                document.getElementById('descricaoItem').focus();
-            }, 100); 
-        }
-    });
-</script>
+    
 
     <script>
 /* --- SCRIPT FALTANTE PARA ATUALIZAR ABA PEÇAS --- */
@@ -1923,5 +1918,4 @@ setTimeout(atualizarResumoVeiculo, 500);
 
 </body>
 </html>
-
 
