@@ -664,7 +664,7 @@ function adicionarFotos(event) {
                     renderizarGaleria();
                     processarArquivo(index + 1);
                 });
-            };\
+            };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
