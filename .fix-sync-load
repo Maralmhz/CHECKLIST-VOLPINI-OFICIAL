@@ -1,0 +1,10 @@
+FIX: Changed sync_manager.js loading from ES6 module to normal script
+
+Before:
+<script type="module">
+    import { syncManager } from './sync_manager.js';
+    window.syncManager = syncManager;
+</script>
+
+After:
+<script src="sync_manager.js"></script>
