@@ -4,7 +4,7 @@
 
 window.OFICINA_CONFIG = {
     // === IDENTIFICAÇÃO ===
-    oficina_id: "volpini",  // Identificador único da oficina
+    oficina_id: "VOLPINI",  // Identificador único da oficina
     
     // === INFORMAÇÕES DA OFICINA ===
     nome: "VOLPINI",
