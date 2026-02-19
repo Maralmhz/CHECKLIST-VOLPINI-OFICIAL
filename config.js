@@ -1,5 +1,5 @@
 // ============================================
-// CONFIG.JS - VOLPINI COM FIREBASE
+// CONFIG.JS - VOLPINI COM FIREBASE NOVO
 // ============================================
 
 window.OFICINA_CONFIG = {
@@ -24,22 +24,20 @@ window.OFICINA_CONFIG = {
 };
 
 // ============================================
-// CONFIGURAÇÃO FIREBASE (PRINCIPAL)
+// CONFIGURAÇÃO FIREBASE NOVO (oficina-hallz)
 // ============================================
 window.FIREBASE_CONFIG = {
-    apiKey: "AIzaSyCpCfotfXYNpQu5o0fFbBvwOnQgU9PuYqU",
-    authDomain: "checklist-oficina-72c9e.firebaseapp.com",
-    databaseURL: "https://checklist-oficina-72c9e-default-rtdb.firebaseio.com",
-    projectId: "checklist-oficina-72c9e",
-    storageBucket: "checklist-oficina-72c9e.firebasestorage.app",
-    messagingSenderId: "305423384809",
-    appId: "1:305423384809:web:b152970a419848a0147078"
+    apiKey: "AIzaSyB6b4waUVzjwxWRCqxDGdtnMuQ8dPLnLRc",
+    authDomain: "oficina-hallz.firebaseapp.com",
+    projectId: "oficina-hallz",
+    storageBucket: "oficina-hallz.firebasestorage.app",
+    messagingSenderId: "597523417628",
+    appId: "1:597523417628:web:c928794dec224c0d29edd9"
 };
 
 // ============================================
 // CONFIGURAÇÃO GIST (LEGADO - DESATIVADO)
 // ============================================
-// Token revogado - não usar mais
 window.CLOUD_CONFIG = {
     TOKEN: '',  // Token revogado por segurança
     GIST_ID: '75e76a26d9b0c36f602ec356f525680a',
