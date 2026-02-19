@@ -22,6 +22,14 @@ const getFirebaseConfig = () => {
 let firebaseApp = null;
 let firestoreDB = null;
 
+// ADICIONE ANTES de initFirebase()
+let currentUser = null;
+
+async function initAuth() {
+  const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+  const auth
+
+
 async function initFirebase() {
     if (firebaseApp) return { app: firebaseApp, db: firestoreDB };
     
