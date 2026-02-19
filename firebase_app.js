@@ -1,20 +1,15 @@
-// firebase_app.js - ARQUITETURA SaaS OTIMIZADA - VOLPINI
-// Estrutura: oficinas/{oficina_id}/checklists/{ano}/{mes}/{checklist_id}
-
-// ============================================
-// CONFIGURAÇÃO FIREBASE
-// ============================================
+// firebase_app.js - PADRÃO SaaS MULTI OFICINA ✅ V2.2 - BLINDAGEM PLACA
 
 const getFirebaseConfig = () => {
     if (window.FIREBASE_CONFIG) return window.FIREBASE_CONFIG;
 
     return {
-        apiKey: window.FIREBASE_API_KEY || "CONFIGURE_NO_CONFIG_JS",
+        apiKey: window.FIREBASE_API_KEY,
         authDomain: "checklist-oficina-72c9e.firebaseapp.com",
         projectId: "checklist-oficina-72c9e",
         storageBucket: "checklist-oficina-72c9e.appspot.com",
-        messagingSenderId: window.FIREBASE_SENDER_ID || "CONFIGURE_NO_CONFIG_JS",
-        appId: window.FIREBASE_APP_ID || "CONFIGURE_NO_CONFIG_JS"
+        messagingSenderId: window.FIREBASE_SENDER_ID,
+        appId: window.FIREBASE_APP_ID
     };
 };
 
@@ -24,34 +19,35 @@ let firestoreDB = null;
 async function initFirebase() {
     if (firebaseApp) return { app: firebaseApp, db: firestoreDB };
 
-    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-    const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const { initializeApp } = await import(
+        "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"
+    );
+    const { getFirestore } = await import(
+        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+    );
 
     const config = getFirebaseConfig();
-    if (config.apiKey === "CONFIGURE_NO_CONFIG_JS") {
-        throw new Error("Firebase não configurado corretamente.");
+
+    if (!window.OFICINA_CONFIG?.oficina_id) {
+        throw new Error("OFICINA_CONFIG.oficina_id não definido");
     }
 
     firebaseApp = initializeApp(config);
     firestoreDB = getFirestore(firebaseApp);
 
-    console.log("✅ Firebase inicializado [VOLPINI]");
+    console.log("🔥 Firebase inicializado:", window.OFICINA_CONFIG.oficina_id);
+
     return { app: firebaseApp, db: firestoreDB };
 }
 
-// ============================================
-// HELPERS
-// ============================================
-
 function getOficinaId() {
-    return window.OFICINA_CONFIG?.oficina_id || "VOLPINI";
+    return window.OFICINA_CONFIG.oficina_id;
 }
 
 function gerarCaminhoData(dataISO) {
     const data = new Date(dataISO);
     const ano = String(data.getFullYear());
     const mes = String(data.getMonth() + 1).padStart(2, "0");
-
     return { ano, mes };
 }
 
@@ -60,67 +56,86 @@ function caminhoChecklist(checklistId, dataCriacao) {
     const { ano, mes } = gerarCaminhoData(dataCriacao);
 
     return {
-        path: `oficinas/${oficinaId}/checklists/${ano}/${mes}`,
+        colecao: `oficinas/${oficinaId}/checklists/${ano}/${mes}`,
         docId: String(checklistId)
     };
 }
 
-// ============================================
-// SALVAR CHECKLIST
-// ============================================
-
 export async function salvarChecklist(checklist) {
-    const { db } = await initFirebase();
-    const { doc, setDoc, serverTimestamp } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
-    );
+    try {
+        console.log("📦 Checklist recebido:", checklist);
 
-    const { path, docId } = caminhoChecklist(checklist.id, checklist.data_criacao);
+        const { db } = await initFirebase();
+        const { doc, setDoc, serverTimestamp } = await import(
+            "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+        );
 
-    const dados = {
-        ...checklist,
-        oficina_id: getOficinaId(),
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-    };
+        const { colecao, docId } = caminhoChecklist(
+            checklist.id,
+            checklist.data_criacao
+        );
 
-    await setDoc(doc(db, path, docId), dados, { merge: true });
+        const dados = {
+            ...checklist,
+            oficina_id: getOficinaId(),
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
+        };
 
-    if (checklist.placa) {
-        await atualizarIndiceVeiculo(checklist);
+        await setDoc(doc(db, colecao, docId), dados, { merge: true });
+        console.log(`✅ Checklist salvo: ${colecao}/${docId}`);
+
+        if (checklist.placa) {
+            await atualizarIndiceVeiculo(checklist);
+        } else {
+            console.warn("⚠️ Checklist salvo sem placa.");
+        }
+
+    } catch (error) {
+        console.error("❌ Erro salvar checklist:", error);
+        throw error;
     }
-
-    console.log("✅ Checklist salvo com sucesso");
 }
 
-// ============================================
-// ÍNDICE DE VEÍCULO
-// ============================================
-
 async function atualizarIndiceVeiculo(checklist) {
-    const { db } = await initFirebase();
-    const { doc, setDoc, arrayUnion, serverTimestamp } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
-    );
+    try {
+        const { db } = await initFirebase();
+        const { doc, setDoc, arrayUnion, serverTimestamp } = await import(
+            "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+        );
 
-    const oficinaId = getOficinaId();
-    const placa = checklist.placa.replace(/[^A-Z0-9]/g, "").toUpperCase();
+        const oficinaId = getOficinaId();
 
-    await setDoc(
-        doc(db, `oficinas/${oficinaId}/veiculos`, placa),
-        {
+        if (!checklist.placa || typeof checklist.placa !== "string") {
+            console.warn("⚠️ Placa inválida ou ausente. Índice não será criado.");
+            return;
+        }
+
+        const placa = checklist.placa
+            .replace(/[^A-Z0-9]/gi, "")
+            .toUpperCase()
+            .trim();
+
+        if (!placa) {
+            console.warn("⚠️ Placa vazia após normalização. Abortando índice.");
+            return;
+        }
+
+        const refVeiculo = doc(db, "oficinas", oficinaId, "veiculos", placa);
+
+        await setDoc(refVeiculo, {
             placa,
             ultima_visita: checklist.data_criacao,
             historico_ids: arrayUnion(checklist.id),
             updated_at: serverTimestamp()
-        },
-        { merge: true }
-    );
-}
+        }, { merge: true });
 
-// ============================================
-// BUSCAR CHECKLISTS COM PAGINAÇÃO
-// ============================================
+        console.log(`🚗 ✅ VEÍCULO SALVO: ${placa}`);
+
+    } catch (error) {
+        console.error("❌ VEÍCULO FALHOU:", error);
+    }
+}
 
 export async function buscarChecklistsMes(ano, mes, limite = 20) {
     const { db } = await initFirebase();
@@ -131,95 +146,32 @@ export async function buscarChecklistsMes(ano, mes, limite = 20) {
     const oficinaId = getOficinaId();
     const mesFormatado = String(mes).padStart(2, "0");
 
-    const ref = collection(
-        db,
-        `oficinas/${oficinaId}/checklists/${ano}/${mesFormatado}`
-    );
-
+    const ref = collection(db, `oficinas/${oficinaId}/checklists/${ano}/${mesFormatado}`);
     const q = query(ref, orderBy("data_criacao", "desc"), limit(limite));
 
     const snapshot = await getDocs(q);
-
-    return snapshot.docs.map(doc => ({
+    const checklists = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
     }));
+
+    console.log(`☁️ ${checklists.length} checklists ${ano}/${mesFormatado}`);
+    return checklists;
 }
 
-// ============================================
-// BUSCAR CHECKLIST POR ID
-// ============================================
+// ================================
+// 🔧 COMPATIBILIDADE CHECKLIST.JS
+// ================================
+export async function salvarNoFirebase(checklist) {
+    console.log("🔥 salvandoNoFirebase → salvarChecklist");
+    return salvarChecklist(checklist);
+}
 
-export async function buscarChecklistPorId(id, dataCriacao) {
-    const { db } = await initFirebase();
-    const { doc, getDoc } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+export async function buscarChecklistsNuvem() {
+    const agora = new Date();
+    return buscarChecklistsMes(
+        agora.getFullYear(),
+        agora.getMonth() + 1,
+        100
     );
-
-    const { path, docId } = caminhoChecklist(id, dataCriacao);
-    const snap = await getDoc(doc(db, path, docId));
-
-    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-}
-
-// ============================================
-// DELETAR CHECKLIST
-// ============================================
-
-export async function deletarChecklist(id, dataCriacao) {
-    const { db } = await initFirebase();
-    const { doc, deleteDoc } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
-    );
-
-    const { path, docId } = caminhoChecklist(id, dataCriacao);
-
-    await deleteDoc(doc(db, path, docId));
-    console.log("🗑️ Checklist deletado");
-}
-
-// ============================================
-// HISTÓRICO DE VEÍCULO
-// ============================================
-
-export async function buscarHistoricoVeiculo(placa) {
-    const { db } = await initFirebase();
-    const { doc, getDoc } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
-    );
-
-    const oficinaId = getOficinaId();
-    const placaLimpa = placa.replace(/[^A-Z0-9]/g, "").toUpperCase();
-
-    const snap = await getDoc(
-        doc(db, `oficinas/${oficinaId}/veiculos`, placaLimpa)
-    );
-
-    return snap.exists() ? snap.data() : null;
-}
-
-// ============================================
-// DEBUG
-// ============================================
-
-export async function testarConexao() {
-    try {
-        await initFirebase();
-        return { status: "ok", oficina: getOficinaId() };
-    } catch (err) {
-        return { status: "erro", mensagem: err.message };
-    }
-}
-
-if (typeof window !== "undefined") {
-    window.firebaseDebug = {
-        salvarChecklist,
-        buscarChecklistsMes,
-        buscarChecklistPorId,
-        deletarChecklist,
-        buscarHistoricoVeiculo,
-        testarConexao
-    };
-
-    console.log("🔧 Firebase Debug carregado");
 }
