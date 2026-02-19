@@ -44,7 +44,7 @@ async function initFirebase() {
 // ============================================
 
 function getOficinaId() {
-    return window.OFICINA_CONFIG?.oficina_id || "VOLIPINI";
+    return window.OFICINA_CONFIG?.oficina_id || "VOLPINI";
 }
 
 function gerarCaminhoData(dataISO) {
